@@ -1,0 +1,6 @@
+[
+  { "name": "OpenAI o4-mini" },
+  { "name": "Anthropic Claude 3.7 Sonnet" },
+  { "name": "Mistral Small 3.1 24B Base 2503" },
+  { "name": "Google Gemini 2.5" }
+]

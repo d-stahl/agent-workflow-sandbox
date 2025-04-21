@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>No-Code AI Workflow Prototype</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <aside id="toolbar">
+      <div class="tabs">
+        <button data-tab="data-sources" class="active">Data Sources</button>
+        <button data-tab="agents">Agents</button>
+        <button data-tab="tools">Tools</button>
+      </div>
+      <div class="tab-content" id="data-sources"></div>
+      <div class="tab-content hidden" id="agents"></div>
+      <div class="tab-content hidden" id="tools"></div>
+    </aside>
+    <main id="workspace">
+      <!-- SVG must be before canvas so z-index layering works -->
+      <svg id="connections" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" width="100%" height="100%"></svg>
+      <div id="canvas"></div>
+    </main>
+  </div>
+  <script src="javascript.js"></script>
+</body>
+</html>
+
