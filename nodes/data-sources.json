@@ -1,8 +1,65 @@
 [
-  { "name": "EriDoc" },
-  { "name": "PRIM" },
-  { "name": "JIRA" },
-  { "name": "ESS" },
-  { "name": "GitLab" },
-  { "name": "Replir" }
+  { 
+    "id": "docustore",
+    "display-text": "DocuStore",
+    "icon": "data-source.png",
+    "inputs": [
+    ],
+    "outputs": [
+      "data"
+    ],
+    "parameters": [
+      {
+        "id": "workspace",
+        "display-text": "Workspace",
+        "type": "string"
+      }
+    ]
+  },
+  { 
+    "id": "product-registry",
+    "display-text": "Product Registry",
+    "icon": "data-source.png",
+    "inputs": [
+    ],
+    "outputs": [
+      "data"
+    ],
+    "parameters": [
+    ]
+  },
+  { 
+    "id": "gitlab",
+    "display-text": "GitLab",
+    "icon": "data-source.png",
+    "inputs": [
+    ],
+    "outputs": [
+      "data"
+    ],
+    "parameters": [
+      {
+        "id": "project",
+        "display-text": "Project",
+        "type": "string"
+      }
+    ]
+  },
+  { 
+    "id": "jira",
+    "display-text": "JIRA",
+    "icon": "data-source.png",
+    "inputs": [
+    ],
+    "outputs": [
+      "data"
+    ],
+    "parameters": [
+      {
+        "id": "project",
+        "display-text": "Project",
+        "type": "string"
+      }
+    ]
+  }
 ]

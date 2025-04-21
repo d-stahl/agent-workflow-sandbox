@@ -1,6 +1,56 @@
 [
-  { "name": "OpenAI o4-mini" },
-  { "name": "Anthropic Claude 3.7 Sonnet" },
-  { "name": "Mistral Small 3.1 24B Base 2503" },
-  { "name": "Google Gemini 2.5" }
+  { 
+    "id": "openai-o4-mini",
+    "display-text": "OpenAI o4-mini",
+    "icon": "agent.png",
+    "inputs": [
+      "data"
+    ],
+    "outputs": [
+      "tool"
+    ],
+    "parameters": [
+      {
+        "id": "prompt",
+        "display-text": "Prompt",
+        "type": "textfield"
+      }
+    ]
+  },
+  { 
+    "id": "anthropic-claude-3-7-sonnet",
+    "display-text": "Anthropic Claude 3.7 Sonnet",
+    "icon": "agent.png",
+    "inputs": [
+      "data"
+    ],
+    "outputs": [
+      "tool"
+    ],
+    "parameters": [
+      {
+        "id": "prompt",
+        "display-text": "Prompt",
+        "type": "textfield"
+      }
+    ]
+  },
+  { 
+    "id": "google-gemini-2-5",
+    "display-text": "Google Gemini 2.5",
+    "icon": "agent.png",
+    "inputs": [
+      "data"
+    ],
+    "outputs": [
+      "tool"
+    ],
+    "parameters": [
+      {
+        "id": "prompt",
+        "display-text": "Prompt",
+        "type": "textfield"
+      }
+    ]
+  }
 ]
