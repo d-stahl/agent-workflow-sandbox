@@ -59,6 +59,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: sans-seri
   position: absolute;
   inset: 0;
   transform: translate(0,0);
+  overflow: visible; 
 }
 /* change cursor when actively panning */
 #pan-container.panning {
@@ -76,6 +77,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: sans-seri
   inset: 0;
   pointer-events: none;
   z-index: 2;
+  overflow: visible; 
 }
 
 /* ─── NODES ─────────────────────────────────────────────────────── */
@@ -169,27 +171,47 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: sans-seri
 /* parameter rows */
 .param-row {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 6px;
 }
 
-/* label next to field */
 .param-label {
-  margin-right: 8px;
-  white-space: nowrap;
-  font-size: 12px;
-  flex-shrink: 0;
+  /* all labels get the same width */
+  width: 140px;      
+  flex-shrink: 0;    /* never shrink below that width */
+  text-align: right; /* labels right‑align their text */
+  margin-right: 8px; /* space between label and field */
 }
 
-/* make the input/textarea fill remaining space */
 .param-field {
-  flex: 1;
+  flex: 1;           /* take up all remaining space */
   font-size: 12px;
   padding: 2px 4px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  box-sizing: border-box; /* ensure padding doesn’t break sizing */
 }
+
+/* ─── NODE FOOTER ───────────────────────────────────────────────── */
+.node-footer {
+  width: 100%;
+  text-align: center;
+  padding: 8px 0 4px;
+  border-top: 1px solid #d4c09e;  /* subtle separator */
+  margin-top: auto;               /* push footer to bottom if using flex */
+}
+
+.node-delete-btn {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.node-delete-btn:hover {
+  opacity: 1;
+}
+
 /* ─── CONNECTORS ───────────────────────────────────────────────── */
 .connector {
   /* slightly larger container so the semi‑circle fully wraps */

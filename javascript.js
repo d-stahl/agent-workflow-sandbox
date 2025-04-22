@@ -3,8 +3,9 @@ const canvas            = document.getElementById('canvas');
 const svg               = document.getElementById('connections');
 const panEl             = document.getElementById('pan-container');
 const ws                = document.getElementById('workspace');
-const connections       = [];   // store completed wires
 const connTypes         = {};
+const connCurveRigidity = 200;
+let connections         = [];
 let nodesData           = {};
 let drawing             = false;
 let currPath            = null;
@@ -119,12 +120,12 @@ function createNode(tab, item, x, y) {
     mkConn(colIn, 'input', type, tab);
   });
 
-  // 2) PARAMETERS COLUMN
+  // ─── PARAMETERS COLUMN ────────────────────────────────────────────
   const colParams = document.createElement('div');
   colParams.className = 'col-params';
   body.appendChild(colParams);
 
-  (item.parameters || []).forEach(param => {
+  (item.parameters || []).forEach((param, idx) => {
     // Row wrapper
     const row = document.createElement('div');
     row.className = 'param-row';
@@ -133,39 +134,81 @@ function createNode(tab, item, x, y) {
     const lbl = document.createElement('label');
     lbl.className = 'param-label';
     lbl.innerText = param.displayText + ':';
-    // associate for accessibility if you like:
-    // lbl.htmlFor = `node-${nodeCounter}-param-${param.key}`;
+    // optional for accessibility if you want:
+    // const fieldId = `node-${nodeCounter}-param-${idx}`;
+    // lbl.htmlFor = fieldId;
 
     // Field
     let field;
-    if (param.type === 'string') {
-      field = document.createElement('input');
-      field.type = 'text';
-      field.value = param.default || '';
-    } else if (param.type === 'textfield') {
-      field = document.createElement('textarea');
-      field.value = param.default || '';
-    } else {
-      field = document.createElement('input');
-      field.type = 'text';
+    switch (param.type) {
+      case 'string':
+        field = document.createElement('input');
+        field.type = 'text';
+        field.value = (param.default != null) ? param.default : '';
+        break;
+
+      case 'textfield':
+        field = document.createElement('textarea');
+        field.value = (param.default != null) ? param.default : '';
+        break;
+
+      case 'int':
+        field = document.createElement('input');
+        field.type = 'number';
+        field.step = '1';
+        // you can optionally honor min/max if your JSON provides them:
+        if (param.min != null) field.min = param.min;
+        if (param.max != null) field.max = param.max;
+        field.value = (param.default != null) ? param.default : '';
+        break;
+
+      default:
+        // fallback to text
+        field = document.createElement('input');
+        field.type = 'text';
+        field.value = (param.default != null) ? param.default : '';
     }
+
     field.className = 'param-field';
+    // field.id = fieldId;   // if you set htmlFor above
 
-    // ID for label binding (optional):
-    // field.id = `node-${nodeCounter}-param-${param.key}`;
-
-    // assemble
+    // Assemble
     row.appendChild(lbl);
     row.appendChild(field);
     colParams.appendChild(row);
   });
-  
+
   // 3) OUTPUTS COLUMN
   const colOut = document.createElement('div');
   colOut.className = 'col-outputs';
   body.appendChild(colOut);
   (item.outputs || []).forEach(type => {
     mkConn(colOut, 'output', type, tab);
+  });
+
+  // ─── FOOTER: delete‑node button ───────────────────────────────
+  const footer = document.createElement('div');
+  footer.className = 'node-footer';
+  // button
+  const btn = document.createElement('img');
+  btn.className = 'node-delete-btn';
+  btn.src       = 'images/delete.png';
+  btn.alt       = 'Delete node';
+  btn.title     = 'Delete this node';
+  footer.appendChild(btn);
+  nd.appendChild(footer);
+
+  // delete logic
+  btn.addEventListener('click', () => {
+    // remove any connections to/from this node
+    connections = connections.filter(c => {
+      const keep = c.from.closest('.canvas-node') !== nd
+                && c.to  .closest('.canvas-node') !== nd;
+      if (!keep) c.path.remove();
+      return keep;
+    });
+    // remove the node itself
+    nd.remove();
   });
 
   // finally, mouse‑drag handler & attach
@@ -289,9 +332,8 @@ function drawConnection(ev) {
   });
 
   const end = snapConn ? getCenter(snapConn) : rawEnd;
-  const H   = 40;
-  const cp1x = start.x + (startConn.dataset.dir==='output' ?  H : -H);
-  const cp2x = end.x   + (startConn.dataset.dir==='output' ? -H :  H);
+  const cp1x = start.x + (startConn.dataset.dir==='output' ?  connCurveRigidity : -connCurveRigidity);
+  const cp2x = end.x   + (startConn.dataset.dir==='output' ? -connCurveRigidity :  connCurveRigidity);
 
   currPath.setAttribute('d',
     `M${start.x},${start.y}` +
@@ -340,9 +382,8 @@ function endConnection(ev) {
     // redraw final path
     const start = getCenter(startConn);
     const end   = getCenter(dropEl);
-    const H     = 40;
-    const cp1x  = start.x + (startConn.dataset.dir==='output' ?  H : -H);
-    const cp2x  = end.x   + (startConn.dataset.dir==='output' ? -H :  H);
+    const cp1x  = start.x + (startConn.dataset.dir==='output' ?  connCurveRigidity : -connCurveRigidity);
+    const cp2x  = end.x   + (startConn.dataset.dir==='output' ? -connCurveRigidity :  connCurveRigidity);
 
     currPath.setAttribute('d',
       `M${start.x},${start.y}` +
@@ -380,9 +421,8 @@ function refreshAllPaths() {
   connections.forEach(conn => {
     const s = getCenter(conn.from);
     const e = getCenter(conn.to);
-    const H = 40;
-    const cp1x = s.x + (conn.from.dataset.dir==='output'? H : -H);
-    const cp2x = e.x   + (conn.from.dataset.dir==='output'?-H:  H);
+    const cp1x = s.x + (conn.from.dataset.dir==='output'? connCurveRigidity : -connCurveRigidity);
+    const cp2x = e.x   + (conn.from.dataset.dir==='output'?-connCurveRigidity:  connCurveRigidity);
 
     conn.path.setAttribute('d',
       `M${s.x},${s.y}` +

@@ -15,7 +15,15 @@
       {
         "id": "prompt",
         "displayText": "Prompt",
-        "type": "textfield"
+        "type": "textfield",
+        "default": "A helpful prompt"
+      },
+      {
+        "id": "parallelization",
+        "displayText": "Parallelization",
+        "type": "int",
+        "default": 1,
+        "min": 1
       }
     ]
   },
@@ -35,7 +43,15 @@
       {
         "id": "prompt",
         "displayText": "Prompt",
-        "type": "textfield"
+        "type": "textfield",
+        "default": "A helpful prompt"
+      },
+      {
+        "id": "parallelization",
+        "displayText": "Parallelization",
+        "type": "int",
+        "default": 1,
+        "min": 1
       }
     ]
   },
@@ -55,7 +71,15 @@
       {
         "id": "prompt",
         "displayText": "Prompt",
-        "type": "textfield"
+        "type": "textfield",
+        "default": "A helpful prompt"
+      },
+      {
+        "id": "parallelization",
+        "displayText": "Parallelization",
+        "type": "int",
+        "default": 1,
+        "min": 1
       }
     ]
   }
