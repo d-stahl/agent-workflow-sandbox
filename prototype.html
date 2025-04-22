@@ -20,9 +20,11 @@
       <div class="tab-content hidden" id="utilities"></div>
     </aside>
     <main id="workspace">
-      <!-- SVG must be before canvas so z-index layering works -->
-      <svg id="connections" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" width="100%" height="100%"></svg>
-      <div id="canvas"></div>
+      <div id="pan-container">
+        <!-- SVG must be before canvas so z-index layering works -->
+        <svg id="connections" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" width="100%" height="100%"></svg>
+        <div id="canvas"></div>
+      </div>
     </main>
   </div>
   <script src="javascript.js"></script>

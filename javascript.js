@@ -1,6 +1,8 @@
 // ─── STATE ────────────────────────────────────────────────────────
 const canvas            = document.getElementById('canvas');
 const svg               = document.getElementById('connections');
+const panEl             = document.getElementById('pan-container');
+const ws                = document.getElementById('workspace');
 const connections       = [];   // store completed wires
 const connTypes         = {};
 let nodesData           = {};
@@ -10,6 +12,10 @@ let startConn           = null;
 let snapConn            = null;
 let canvasRect          = null;
 let currentHoveredPath  = null;
+let panX                = 0;
+let panY                = 0;
+let isPanning           = false;
+let panStart            = {x:0,y:0};
 
 // LOAD CONNECTION TYPES
 fetch('nodes/connections.json')
@@ -53,17 +59,28 @@ function onToolboxDrag(ev) {
   );
 }
 
-canvas.addEventListener('dragover', e => e.preventDefault());
-canvas.addEventListener('drop',    onCanvasDrop);
+ws.addEventListener('dragover', e => e.preventDefault());
+ws.addEventListener('drop',      onCanvasDrop);
 
 function onCanvasDrop(ev) {
   ev.preventDefault();
+
+  // decode the item
   const [tab, disp] = ev.dataTransfer.getData('text/plain').split('::');
   if (!tab) return;
-  // lookup the JSON item by its display-text
-  const item = (nodesData[tab]||[]).find(i => i['displayText'] === disp);
+  const item = (nodesData[tab]||[]).find(i => 
+       i['display-text']===disp || i.displayText===disp || i.name===disp
+  );
   if (!item) return;
-  createNode(tab, item, ev.offsetX, ev.offsetY);}
+
+  // figure out where in panEl the drop happened
+  const panRect = panEl.getBoundingClientRect();
+  const clientX = ev.clientX - panRect.left;
+  const clientY = ev.clientY - panRect.top;
+
+  // finally create the node at our transformed coords
+  createNode(tab, item, clientX, clientY);
+}
 
 // ─── NODE FACTORY ─────────────────────────────────────────────────
 let nodeCounter = 0;
@@ -150,6 +167,12 @@ let dragNode   = null;
 let dragOffset = { x: 0, y: 0 };
 
 function nodeMouseDown(ev) {
+    // don’t start a node‐drag if the user is clicking an input or textarea
+    const tag = ev.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') {
+      return;
+    }
+  
   // ignore connector clicks
   if (ev.target.classList.contains('connector')) return;
   if (ev.target.classList.contains('ball'))      return;
@@ -417,7 +440,6 @@ function showConnectionPopup(path, x, y) {
   // disappear when you leave the popup itself
   connPopup.addEventListener('mouseleave', hideConnectionPopup);
 
-  const ws    = document.getElementById('workspace');
   const wsRect = ws.getBoundingClientRect();
   ws.appendChild(connPopup);
 
@@ -462,4 +484,38 @@ function removeConnection(path) {
 
   // 4) remove the visual line
   path.remove();
+}
+
+window.addEventListener('resize', () => {
+  // update canvasRect in case workspace moved/grew
+  canvasRect = canvas.getBoundingClientRect();
+  refreshAllPaths();
+});
+
+// start pan when dragging on empty workspace
+document.getElementById('workspace').addEventListener('mousedown', ev => {
+  // ignore clicks on nodes, connectors, or popup
+  if (ev.target.closest('.canvas-node, .connector, path.connection, .connection-popup')) {
+    return;
+  }
+  isPanning = true;
+  panStart.x = ev.clientX - panX;
+  panStart.y = ev.clientY - panY;
+  panEl.classList.add('panning');
+  document.addEventListener('mousemove', onPanMove);
+  document.addEventListener('mouseup',   onPanEnd);
+});
+
+function onPanMove(ev) {
+  if (!isPanning) return;
+  panX = ev.clientX - panStart.x;
+  panY = ev.clientY - panStart.y;
+  panEl.style.transform = `translate(${panX}px, ${panY}px)`;
+}
+
+function onPanEnd(ev) {
+  isPanning = false;
+  panEl.classList.remove('panning');
+  document.removeEventListener('mousemove', onPanMove);
+  document.removeEventListener('mouseup',   onPanEnd);
 }
