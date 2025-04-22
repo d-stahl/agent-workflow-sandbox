@@ -92,49 +92,83 @@ function createNode(tab, item, x, y) {
   nd.dataset.tab = tab;
   nd.dataset.id  = 'node-' + (++nodeCounter);
 
+  // Icon badge (unchanged)
   if (item.icon) {
     const icon = document.createElement('img');
     icon.className = 'node-icon';
-    icon.src       = `images/${item.icon}`;  // adjust path if needed
-    icon.alt       = '';
+    icon.src       = `images/${item.icon}`;
     nd.appendChild(icon);
   }
 
-  // Title
+  // Title (unchanged)
   const h = document.createElement('div');
   h.className = 'title';
-  h.innerText = item['displayText'];
+  h.innerText = item.displayText;
   nd.appendChild(h);
 
-  // prepare the connector containers
-  const inC  = document.createElement('div');
-  inC.className  = 'input-container';
-  nd.appendChild(inC);
+  // ─── BODY FLEX ROW ───────────────────────────────────
+  const body = document.createElement('div');
+  body.className = 'node-body';   // will be flex-row
+  nd.appendChild(body);
 
-  const outC = document.createElement('div');
-  outC.className = 'output-container';
-  nd.appendChild(outC);
+  // 1) INPUTS COLUMN
+  const colIn = document.createElement('div');
+  colIn.className = 'col-inputs';
+  body.appendChild(colIn);
+  (item.inputs || []).forEach(type => {
+    mkConn(colIn, 'input', type, tab);
+  });
 
-  // now wire up connectors at the top
-  (item.inputs||[]).forEach(type => mkConn(inC,'input',type,tab));
-  (item.outputs||[]).forEach(type=> mkConn(outC,'output',type,tab));
+  // 2) PARAMETERS COLUMN
+  const colParams = document.createElement('div');
+  colParams.className = 'col-params';
+  body.appendChild(colParams);
 
-  // Params
-  if (Array.isArray(item.parameters) && item.parameters.length) {
-    item.parameters.forEach(param => {
-      const p = document.createElement('div');
-      p.className = 'params';
-      let inputHTML = '';
-      if (param.type === 'string') {
-        inputHTML = `<input type="text" value="${param.default||''}" />`;
-      } else if (param.type === 'textfield') {
-        inputHTML = `<textarea>${param.default||''}</textarea>`;
-      }
-      p.innerHTML = `${param.displayText}: ${inputHTML}`;
-      nd.appendChild(p);
-    });
-  }
+  (item.parameters || []).forEach(param => {
+    // Row wrapper
+    const row = document.createElement('div');
+    row.className = 'param-row';
 
+    // Label
+    const lbl = document.createElement('label');
+    lbl.className = 'param-label';
+    lbl.innerText = param.displayText + ':';
+    // associate for accessibility if you like:
+    // lbl.htmlFor = `node-${nodeCounter}-param-${param.key}`;
+
+    // Field
+    let field;
+    if (param.type === 'string') {
+      field = document.createElement('input');
+      field.type = 'text';
+      field.value = param.default || '';
+    } else if (param.type === 'textfield') {
+      field = document.createElement('textarea');
+      field.value = param.default || '';
+    } else {
+      field = document.createElement('input');
+      field.type = 'text';
+    }
+    field.className = 'param-field';
+
+    // ID for label binding (optional):
+    // field.id = `node-${nodeCounter}-param-${param.key}`;
+
+    // assemble
+    row.appendChild(lbl);
+    row.appendChild(field);
+    colParams.appendChild(row);
+  });
+  
+  // 3) OUTPUTS COLUMN
+  const colOut = document.createElement('div');
+  colOut.className = 'col-outputs';
+  body.appendChild(colOut);
+  (item.outputs || []).forEach(type => {
+    mkConn(colOut, 'output', type, tab);
+  });
+
+  // finally, mouse‑drag handler & attach
   nd.addEventListener('mousedown', nodeMouseDown);
   canvas.appendChild(nd);
 }

@@ -5,7 +5,8 @@
     "icon": "agent.png",
     "inputs": [
       "data",
-      "trigger"
+      "trigger",
+      "tool"
     ],
     "outputs": [
       "tool"
@@ -24,7 +25,8 @@
     "icon": "agent.png",
     "inputs": [
       "data",
-      "trigger"
+      "trigger",
+      "tool"
     ],
     "outputs": [
       "tool"
@@ -43,7 +45,8 @@
     "icon": "agent.png",
     "inputs": [
       "data",
-      "trigger"
+      "trigger",
+      "tool"
     ],
     "outputs": [
       "tool"

@@ -89,7 +89,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: sans-seri
   padding-right: 16px;
   padding-left: 16px;
   padding-bottom: 16px;
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
   min-width: 160px;
   color: #3a3a3a;
   font-family: sans-serif;
@@ -140,6 +141,55 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: sans-seri
   object-fit: contain;
 }
 
+.node-body {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;    /* top‑align all columns */
+  width: 100%;
+  gap: 12px;                  /* space between columns */
+}
+
+/* left/center/right columns */
+.col-inputs,
+.col-params,
+.col-outputs {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+/* inputs and outputs narrow to fit their balls */
+.col-inputs { width: auto; }
+.col-outputs { width: auto; }
+
+/* parameters take all remaining space */
+.col-params { flex: 1; }
+
+/* parameter rows */
+.param-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+/* label next to field */
+.param-label {
+  margin-right: 8px;
+  white-space: nowrap;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* make the input/textarea fill remaining space */
+.param-field {
+  flex: 1;
+  font-size: 12px;
+  padding: 2px 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
 /* ─── CONNECTORS ───────────────────────────────────────────────── */
 .connector {
   /* slightly larger container so the semi‑circle fully wraps */
