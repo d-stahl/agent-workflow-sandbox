@@ -1,7 +1,7 @@
 [
   { 
     "id": "openai-o4-mini",
-    "display-text": "OpenAI o4-mini",
+    "displayText": "OpenAI o4-mini",
     "icon": "agent.png",
     "inputs": [
       "data"
@@ -12,14 +12,14 @@
     "parameters": [
       {
         "id": "prompt",
-        "display-text": "Prompt",
+        "displayText": "Prompt",
         "type": "textfield"
       }
     ]
   },
   { 
     "id": "anthropic-claude-3-7-sonnet",
-    "display-text": "Anthropic Claude 3.7 Sonnet",
+    "displayText": "Anthropic Claude 3.7 Sonnet",
     "icon": "agent.png",
     "inputs": [
       "data"
@@ -30,14 +30,14 @@
     "parameters": [
       {
         "id": "prompt",
-        "display-text": "Prompt",
+        "displayText": "Prompt",
         "type": "textfield"
       }
     ]
   },
   { 
     "id": "google-gemini-2-5",
-    "display-text": "Google Gemini 2.5",
+    "displayText": "Google Gemini 2.5",
     "icon": "agent.png",
     "inputs": [
       "data"
@@ -48,7 +48,7 @@
     "parameters": [
       {
         "id": "prompt",
-        "display-text": "Prompt",
+        "displayText": "Prompt",
         "type": "textfield"
       }
     ]

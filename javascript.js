@@ -10,7 +10,7 @@ let snapConn      = null;
 let canvasRect    = null;
 
 // ─── LOAD TOOLBOX JSONS ───────────────────────────────────────────
-['data-sources','agents','tools'].forEach(tab => {
+['data-sources','agents','tools','utilities'].forEach(tab => {
   fetch(`nodes/${tab}.json`)
     .then(r => r.json())
     .then(data => {
@@ -25,7 +25,7 @@ function renderToolbox(tab, items) {
     const d = document.createElement('div');
     d.className    = 'toolbox-node';
     d.draggable    = true;
-    d.innerText    = item.name;
+    d.innerText    = item['displayText'];
     d.dataset.tab  = tab;
     d.addEventListener('dragstart', onToolboxDrag);
     cont.appendChild(d);
@@ -44,14 +44,16 @@ canvas.addEventListener('drop',    onCanvasDrop);
 
 function onCanvasDrop(ev) {
   ev.preventDefault();
-  const [tab, name] = ev.dataTransfer.getData('text/plain').split('::');
+  const [tab, disp] = ev.dataTransfer.getData('text/plain').split('::');
   if (!tab) return;
-  createNode(tab, name, ev.offsetX, ev.offsetY);
-}
+  // lookup the JSON item by its display-text
+  const item = (nodesData[tab]||[]).find(i => i['displayText'] === disp);
+  if (!item) return;
+  createNode(tab, item, ev.offsetX, ev.offsetY);}
 
 // ─── NODE FACTORY ─────────────────────────────────────────────────
 let nodeCounter = 0;
-function createNode(tab, name, x, y) {
+function createNode(tab, item, x, y) {
   const nd = document.createElement('div');
   nd.className  = 'canvas-node';
   nd.style.left = x + 'px';
@@ -62,14 +64,24 @@ function createNode(tab, name, x, y) {
   // Title
   const h = document.createElement('div');
   h.className = 'title';
-  h.innerText = name;
+  h.innerText = item['displayText'];
   nd.appendChild(h);
 
   // Params
-  const p = document.createElement('div');
-  p.className = 'params';
-  p.innerHTML = `DummyParameter: <input type="number" value="1" style="width:40px;">`;
-  nd.appendChild(p);
+  if (Array.isArray(item.parameters) && item.parameters.length) {
+    item.parameters.forEach(param => {
+      const p = document.createElement('div');
+      p.className = 'params';
+      let inputHTML = '';
+      if (param.type === 'string') {
+        inputHTML = `<input type="text" value="${param.default||''}" />`;
+      } else if (param.type === 'textfield') {
+        inputHTML = `<textarea>${param.default||''}</textarea>`;
+      }
+      p.innerHTML = `${param.displayText}: ${inputHTML}`;
+      nd.appendChild(p);
+    });
+  }
 
   // Input & Output containers
   const inC  = document.createElement('div');
@@ -79,15 +91,13 @@ function createNode(tab, name, x, y) {
   nd.appendChild(inC);
   nd.appendChild(outC);
 
-  // Make connectors
-  if (tab === 'data-sources') {
-    mkConn(outC, 'output', 'source');
-  } else if (tab === 'agents') {
-    mkConn(inC,  'input',  'source');
-    mkConn(outC, 'output', 'agent');
-  } else { // tools
-    mkConn(inC,  'input', 'agent');
-  }
+  // Make connectors per JSON inputs/outputs
+  (item.inputs||[]).forEach(type => {
+    mkConn(inC, 'input', type);
+  });
+  (item.outputs||[]).forEach(type => {
+    mkConn(outC,'output',type);
+  });
 
   nd.addEventListener('mousedown', nodeMouseDown);
   canvas.appendChild(nd);
@@ -100,7 +110,7 @@ function mkConn(container, dir, type) {
   wrapper.dataset.type = type;
 
   // set connector color
-  const col = (type === 'source' ? '#3498db' : '#e67e22');
+  const col = (type === 'data' ? '#3498db' : '#e67e22');
   wrapper.style.setProperty('--connColor', col);
 
   // the draggable ball
@@ -150,29 +160,34 @@ function nodeMouseUp() {
 
 // ─── CONNECTION DRAWING ───────────────────────────────────────────
 function startConnection(ev) {
-  ev.stopPropagation(); ev.preventDefault();
+  ev.stopPropagation();
+  ev.preventDefault();
   drawing    = true;
-  // either wrapper or ball
+  // pick the connector element itself
   startConn  = ev.currentTarget.classList.contains('connector')
                ? ev.currentTarget
                : ev.currentTarget.parentNode;
   canvasRect = canvas.getBoundingClientRect();
-
-  // if dragging from an input, keep its ball visible
-  if (startConn.dataset.dir === 'input') {
-    startConn.classList.add('connected');
-  }
-
   svg.setAttribute('viewBox', `0 0 ${canvasRect.width} ${canvasRect.height}`);
   snapConn   = null;
 
-  svg.style.zIndex = 4;   // above everything while you draw
+  // keep the origin input “lit up”
+  if (startConn.dataset.dir === 'input') {
+    startConn.classList.add('snapping');
+  }
+
+  // bring SVG forward & fade nodes
+  svg.style.zIndex = 4;
   document.querySelectorAll('.canvas-node')
-    .forEach(n => n.style.opacity = 1);
+          .forEach(n => n.style.opacity = 1);
+
+  // stroke color based on category
+  const color = startConn.dataset.type === 'data'
+              ? '#3498db'
+              : '#e67e22';
 
   currPath = document.createElementNS('http://www.w3.org/2000/svg','path');
-  currPath.setAttribute('stroke',
-    startConn.dataset.type==='source'?'#3498db':'#e67e22');
+  currPath.setAttribute('stroke', color);
   currPath.setAttribute('fill','none');
   currPath.setAttribute('stroke-width','2');
   svg.appendChild(currPath);
@@ -188,32 +203,35 @@ function drawConnection(ev) {
     y: ev.clientY - canvasRect.top
   };
 
-  // snapping
+  // find a compatible snap target
   snapConn = null;
   document.querySelectorAll('.connector').forEach(c => {
-    if (c===startConn) return;
-    if (c.dataset.type!==startConn.dataset.type) return;
-    if (c.dataset.dir ===startConn.dataset.dir) return;
+    if (c === startConn) return;
+    if (c.dataset.type  !== startConn.dataset.type) return;
+    if (c.dataset.dir   === startConn.dataset.dir) return;
     const ctr = getCenter(c);
-    if (Math.hypot(ctr.x-rawEnd.x, ctr.y-rawEnd.y) < 15) {
+    if (Math.hypot(ctr.x - rawEnd.x, ctr.y - rawEnd.y) < 15) {
       snapConn = c;
     }
   });
 
   const end = snapConn ? getCenter(snapConn) : rawEnd;
   const H   = 40;
-  const cp1x = start.x + (startConn.dataset.dir==='output'? H : -H);
-  const cp2x = end.x   + (startConn.dataset.dir==='output'?-H:  H);
+  const cp1x = start.x + (startConn.dataset.dir==='output' ?  H : -H);
+  const cp2x = end.x   + (startConn.dataset.dir==='output' ? -H :  H);
 
   currPath.setAttribute('d',
     `M${start.x},${start.y}` +
     ` C${cp1x},${start.y} ${cp2x},${end.y} ${end.x},${end.y}`
   );
 
-  // highlight input when snapping
-  document.querySelectorAll('.connector.input')
-    .forEach(c=>c.classList.remove('snapping'));
-  if (snapConn && snapConn.classList.contains('input')) {
+  // clear snapping on all *other* inputs
+  document.querySelectorAll('.connector.input').forEach(c => {
+    if (c !== startConn) c.classList.remove('snapping');
+  });
+
+  // highlight the target if it’s an input
+  if (snapConn && snapConn.dataset.dir === 'input') {
     snapConn.classList.add('snapping');
   }
 }
@@ -222,33 +240,38 @@ function endConnection(ev) {
   document.removeEventListener('mousemove', drawConnection);
   document.removeEventListener('mouseup',   endConnection);
 
-  svg.style.zIndex = 2;   // back under the nodes, but above the canvas
+  // restore layering & opacity
+  svg.style.zIndex = 1;
   document.querySelectorAll('.canvas-node')
-    .forEach(n => n.style.opacity = 0.85);
+          .forEach(n => n.style.opacity = 0.85);
 
-  document.querySelectorAll('.connector.input')
-    .forEach(c=>c.classList.remove('snapping'));
+  // clear any snapping highlight on others
+  document.querySelectorAll('.connector.input').forEach(c => {
+    if (c !== startConn) c.classList.remove('snapping');
+  });
 
+  // figure out where we dropped
   let dropEl = snapConn;
   if (!dropEl) {
     const el = document.elementFromPoint(ev.clientX, ev.clientY);
     if (el &&
         el.classList.contains('connector') &&
-        el.dataset.type===startConn.dataset.type &&
-        el.dataset.dir !== startConn.dataset.dir) {
+        el.dataset.type === startConn.dataset.type &&
+        el.dataset.dir  !== startConn.dataset.dir) {
       dropEl = el;
     }
   }
 
   if (dropEl) {
-    if (dropEl.classList.contains('input')) {
-      dropEl.classList.add('connected');
-    }
+    dropEl.classList.add('connected');
+    startConn.classList.add('connected');
+
+    // redraw final path
     const start = getCenter(startConn);
     const end   = getCenter(dropEl);
     const H     = 40;
-    const cp1x  = start.x + (startConn.dataset.dir==='output'? H : -H);
-    const cp2x  = end.x   + (startConn.dataset.dir==='output'?-H:  H);
+    const cp1x  = start.x + (startConn.dataset.dir==='output' ?  H : -H);
+    const cp2x  = end.x   + (startConn.dataset.dir==='output' ? -H :  H);
 
     currPath.setAttribute('d',
       `M${start.x},${start.y}` +
@@ -257,7 +280,13 @@ function endConnection(ev) {
 
     connections.push({ path: currPath, from: startConn, to: dropEl });
   } else {
+    // no valid drop: toss the path
     svg.removeChild(currPath);
+  }
+
+  // finally, always clear the origin’s temporary snapping
+  if (startConn.dataset.dir === 'input') {
+    startConn.classList.remove('snapping');
   }
 
   currPath  = null;

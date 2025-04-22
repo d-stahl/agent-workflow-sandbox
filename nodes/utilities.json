@@ -1,4 +1,30 @@
 [
-  { "name": "Timer" },
-  { "name": "Chat" }
+  { 
+    "id": "timer",
+    "displayText": "Timer",
+    "icon": "timer.png",
+    "inputs": [
+    ],
+    "outputs": [
+    ],
+    "parameters": [
+    ]
+  },
+  {
+    "id": "agent-chat",
+    "displayText": "Agent chat",
+    "icon": "chat.png",
+    "inputs": [
+      "data"
+    ],
+    "outputs": [
+    ],
+    "parameters": [
+      {
+        "id": "name",
+        "displayText": "Name",
+        "type": "string"
+      }
+    ]
+  }
 ]

@@ -1,7 +1,7 @@
 [
   { 
     "id": "docustore",
-    "display-text": "DocuStore",
+    "displayText": "DocuStore",
     "icon": "data-source.png",
     "inputs": [
     ],
@@ -11,14 +11,14 @@
     "parameters": [
       {
         "id": "workspace",
-        "display-text": "Workspace",
+        "displayText": "Workspace",
         "type": "string"
       }
     ]
   },
   { 
     "id": "product-registry",
-    "display-text": "Product Registry",
+    "displayText": "Product Registry",
     "icon": "data-source.png",
     "inputs": [
     ],
@@ -30,7 +30,7 @@
   },
   { 
     "id": "gitlab",
-    "display-text": "GitLab",
+    "displayText": "GitLab",
     "icon": "data-source.png",
     "inputs": [
     ],
@@ -40,14 +40,14 @@
     "parameters": [
       {
         "id": "project",
-        "display-text": "Project",
+        "displayText": "Project",
         "type": "string"
       }
     ]
   },
   { 
     "id": "jira",
-    "display-text": "JIRA",
+    "displayText": "JIRA",
     "icon": "data-source.png",
     "inputs": [
     ],
@@ -57,7 +57,7 @@
     "parameters": [
       {
         "id": "project",
-        "display-text": "Project",
+        "displayText": "Project",
         "type": "string"
       }
     ]
