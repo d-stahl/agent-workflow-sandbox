@@ -6,7 +6,8 @@
     "inputs": [
     ],
     "outputs": [
-      "data"
+      "data",
+      "trigger"
     ],
     "parameters": [
       {
@@ -23,7 +24,8 @@
     "inputs": [
     ],
     "outputs": [
-      "data"
+      "data",
+      "trigger"
     ],
     "parameters": [
     ]
@@ -35,7 +37,8 @@
     "inputs": [
     ],
     "outputs": [
-      "data"
+      "data",
+      "trigger"
     ],
     "parameters": [
       {

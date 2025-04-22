@@ -2,12 +2,25 @@
 const canvas      = document.getElementById('canvas');
 const svg         = document.getElementById('connections');
 const connections = [];   // store completed wires
+const connTypes   = {};
 let nodesData     = {};
 let drawing       = false;
 let currPath      = null;
 let startConn     = null;
 let snapConn      = null;
 let canvasRect    = null;
+
+// LOAD CONNECTION TYPES
+fetch('nodes/connections.json')
+  .then(r => r.json())
+  .then(arr => {
+    arr.forEach(def => {
+      connTypes[def.id] = def;
+    });
+  })
+  .catch(err => {
+    console.error('Failed to load connection types:', err);
+  });
 
 // ─── LOAD TOOLBOX JSONS ───────────────────────────────────────────
 ['data-sources','agents','tools','utilities'].forEach(tab => {
@@ -61,11 +74,32 @@ function createNode(tab, item, x, y) {
   nd.dataset.tab = tab;
   nd.dataset.id  = 'node-' + (++nodeCounter);
 
+  if (item.icon) {
+    const icon = document.createElement('img');
+    icon.className = 'node-icon';
+    icon.src       = `images/${item.icon}`;  // adjust path if needed
+    icon.alt       = '';
+    nd.appendChild(icon);
+  }
+
   // Title
   const h = document.createElement('div');
   h.className = 'title';
   h.innerText = item['displayText'];
   nd.appendChild(h);
+
+  // prepare the connector containers
+  const inC  = document.createElement('div');
+  inC.className  = 'input-container';
+  nd.appendChild(inC);
+
+  const outC = document.createElement('div');
+  outC.className = 'output-container';
+  nd.appendChild(outC);
+
+  // now wire up connectors at the top
+  (item.inputs||[]).forEach(type => mkConn(inC,'input',type,tab));
+  (item.outputs||[]).forEach(type=> mkConn(outC,'output',type,tab));
 
   // Params
   if (Array.isArray(item.parameters) && item.parameters.length) {
@@ -83,22 +117,6 @@ function createNode(tab, item, x, y) {
     });
   }
 
-  // Input & Output containers
-  const inC  = document.createElement('div');
-  const outC = document.createElement('div');
-  inC .className = 'input-container';
-  outC.className = 'output-container';
-  nd.appendChild(inC);
-  nd.appendChild(outC);
-
-  // Make connectors per JSON inputs/outputs
-  (item.inputs||[]).forEach(type => {
-    mkConn(inC, 'input', type);
-  });
-  (item.outputs||[]).forEach(type => {
-    mkConn(outC,'output',type);
-  });
-
   nd.addEventListener('mousedown', nodeMouseDown);
   canvas.appendChild(nd);
 }
@@ -110,8 +128,9 @@ function mkConn(container, dir, type) {
   wrapper.dataset.type = type;
 
   // set connector color
-  const col = (type === 'data' ? '#3498db' : '#e67e22');
-  wrapper.style.setProperty('--connColor', col);
+  const def = connTypes[type];
+  const col = def ? def.color : '#888';        // fallback gray if missing
+  wrapper.style.setProperty('--connColor', col);  wrapper.style.setProperty('--connColor', col);
 
   // the draggable ball
   const ball = document.createElement('div');
@@ -182,9 +201,8 @@ function startConnection(ev) {
           .forEach(n => n.style.opacity = 1);
 
   // stroke color based on category
-  const color = startConn.dataset.type === 'data'
-              ? '#3498db'
-              : '#e67e22';
+  const def = connTypes[startConn.dataset.type];
+  const color = def ? def.color : '#555';
 
   currPath = document.createElementNS('http://www.w3.org/2000/svg','path');
   currPath.setAttribute('stroke', color);

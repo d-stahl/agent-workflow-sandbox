@@ -4,7 +4,8 @@
     "displayText": "OpenAI o4-mini",
     "icon": "agent.png",
     "inputs": [
-      "data"
+      "data",
+      "trigger"
     ],
     "outputs": [
       "tool"
@@ -22,7 +23,8 @@
     "displayText": "Anthropic Claude 3.7 Sonnet",
     "icon": "agent.png",
     "inputs": [
-      "data"
+      "data",
+      "trigger"
     ],
     "outputs": [
       "tool"
@@ -40,7 +42,8 @@
     "displayText": "Google Gemini 2.5",
     "icon": "agent.png",
     "inputs": [
-      "data"
+      "data",
+      "trigger"
     ],
     "outputs": [
       "tool"

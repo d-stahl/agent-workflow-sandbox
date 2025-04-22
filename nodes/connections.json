@@ -1,0 +1,17 @@
+[
+  { 
+    "id": "data",
+    "displayText": "Data",
+    "color": "#4c7e73"
+  },
+  { 
+    "id": "tool",
+    "displayText": "Tool",
+    "color": "#a77528"
+  },
+  { 
+    "id": "trigger",
+    "displayText": "Trigger",
+    "color": "#96460f"
+  }
+]
