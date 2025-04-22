@@ -177,3 +177,52 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: sans-seri
 .connector.input.connected .ball {
   display: block;
 }
+
+/* ─── CONNECTION HOVER HIGHLIGHT ───────────────────────────── */
+path.connection {
+  transition: stroke-width 0.1s;
+  cursor: pointer;
+  pointer-events: stroke;
+}
+path.connection.hovered {
+  stroke-width: 4 !important;
+}
+
+/* ─── POPUP STYLING ─────────────────────────────────────────── */
+.connection-popup {
+  position: absolute;
+  width: 120px;
+  background: #faf3e0;
+  border: 2px solid #b08d57;
+  border-radius: 8px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  padding: 8px;
+  text-align: center;
+  z-index: 100;
+}
+
+.connection-popup .node-icon {
+  position: absolute;
+  top: -16px;    /* half of its height */
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  display: block;
+  margin-left: -16px;
+  border: 2px solid #b08d57;  /* same border as before */
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  object-fit: contain;
+}
+.connection-popup .title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 16px;
+  margin-bottom: 6px;
+}
+.connection-popup .delete-btn {
+  width: 24px; height: 24px;
+  margin: 0 auto;
+  cursor: pointer;
+}

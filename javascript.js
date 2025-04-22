@@ -1,14 +1,15 @@
 // ─── STATE ────────────────────────────────────────────────────────
-const canvas      = document.getElementById('canvas');
-const svg         = document.getElementById('connections');
-const connections = [];   // store completed wires
-const connTypes   = {};
-let nodesData     = {};
-let drawing       = false;
-let currPath      = null;
-let startConn     = null;
-let snapConn      = null;
-let canvasRect    = null;
+const canvas            = document.getElementById('canvas');
+const svg               = document.getElementById('connections');
+const connections       = [];   // store completed wires
+const connTypes         = {};
+let nodesData           = {};
+let drawing             = false;
+let currPath            = null;
+let startConn           = null;
+let snapConn            = null;
+let canvasRect          = null;
+let currentHoveredPath  = null;
 
 // LOAD CONNECTION TYPES
 fetch('nodes/connections.json')
@@ -195,10 +196,7 @@ function startConnection(ev) {
     startConn.classList.add('snapping');
   }
 
-  // bring SVG forward & fade nodes
   svg.style.zIndex = 4;
-  document.querySelectorAll('.canvas-node')
-          .forEach(n => n.style.opacity = 1);
 
   // stroke color based on category
   const def = connTypes[startConn.dataset.type];
@@ -260,8 +258,6 @@ function endConnection(ev) {
 
   // restore layering & opacity
   svg.style.zIndex = 1;
-  document.querySelectorAll('.canvas-node')
-          .forEach(n => n.style.opacity = 0.85);
 
   // clear any snapping highlight on others
   document.querySelectorAll('.connector.input').forEach(c => {
@@ -301,6 +297,14 @@ function endConnection(ev) {
     // no valid drop: toss the path
     svg.removeChild(currPath);
   }
+
+  // give the path a CSS hook and remember its type
+  currPath.classList.add('connection');
+  currPath.dataset.type = startConn.dataset.type;
+
+  // hover highlighting + popup
+  currPath.addEventListener('mouseenter', onConnectionMouseEnter);
+  currPath.addEventListener('mouseleave', onConnectionMouseLeave);
 
   // finally, always clear the origin’s temporary snapping
   if (startConn.dataset.dir === 'input') {
@@ -350,3 +354,112 @@ document.querySelectorAll('.tabs button').forEach(btn => {
     document.getElementById(btn.dataset.tab).classList.remove('hidden');
   });
 });
+
+let connPopup = null;
+
+function onConnectionMouseEnter(ev) {
+  const path = ev.currentTarget;
+
+  // show info popup beneath cursor
+  const { clientX: x, clientY: y } = ev;
+  showConnectionPopup(path, x, y);
+
+  // highlight the path
+  currentHoveredPath = path;
+  currentHoveredPath.classList.add('hovered');
+}
+
+function onConnectionMouseLeave(ev) {
+  const path = ev.currentTarget;
+  // if we’re moving into the popup, do nothing
+  if (connPopup && ev.relatedTarget && connPopup.contains(ev.relatedTarget)) {
+    return;
+  }
+  path.classList.remove('hovered');
+  hideConnectionPopup();
+}
+
+function showConnectionPopup(path, x, y) {
+  hideConnectionPopup();  // only one at a time
+
+  // lookup its human title
+  const type = path.dataset.type;
+  const info = connTypes[type] || { displayText: type };
+
+  // build the popup container
+  connPopup = document.createElement('div');
+  connPopup.className = 'connection-popup';
+
+  // 1) icon badge
+  const icon = document.createElement('img');
+  icon.className = 'node-icon';
+  icon.src       = 'images/connection.png';
+  icon.alt       = '';
+  connPopup.appendChild(icon);
+
+  // 2) title
+  const title = document.createElement('div');
+  title.className = 'title';
+  title.innerText = info.displayText;
+  connPopup.appendChild(title);
+
+  // 3) delete button
+  const del = document.createElement('img');
+  del.className = 'delete-btn';
+  del.src       = 'images/delete.png';
+  del.alt       = 'Delete';
+  del.addEventListener('click', () => {
+    removeConnection(path);
+    hideConnectionPopup();
+  });
+  connPopup.appendChild(del);
+
+  // disappear when you leave the popup itself
+  connPopup.addEventListener('mouseleave', hideConnectionPopup);
+
+  const ws    = document.getElementById('workspace');
+  const wsRect = ws.getBoundingClientRect();
+  ws.appendChild(connPopup);
+
+  // center horizontally: put left at cursor X, then shift back by 50%
+  connPopup.style.left = `${x - wsRect.left}px`;
+  connPopup.style.top  = `${y - wsRect.top + 12}px`;    // 12px below the cursor
+  connPopup.style.transform = 'translateX(-50%)';
+}
+
+function hideConnectionPopup() {
+  if (connPopup) {
+    connPopup.remove();
+    connPopup = null;
+  }
+
+  if(currentHoveredPath) {
+    currentHoveredPath.classList.remove('hovered');
+    currentHoveredPath = null;
+  }
+}
+
+/**
+ * Completely un‑hooks a connection:
+ *  1. Remove the “connected” ball on the input endpoint
+ *  2. Remove the SVG path from the canvas
+ *  3. Remove the entry from our connections[] array
+ */
+function removeConnection(path) {
+  // 1) find the stored connection object
+  const idx = connections.findIndex(c => c.path === path);
+  if (idx !== -1) {
+    const conn = connections[idx];
+
+    // 2) if its 'to' end is an input, clear the permanent marker
+    if (conn.to && conn.to.dataset.dir === 'input') {
+      conn.to.classList.remove('connected');
+    }
+
+    // 3) remove from our list
+    connections.splice(idx, 1);
+  }
+
+  // 4) remove the visual line
+  path.remove();
+}
