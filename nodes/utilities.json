@@ -9,7 +9,21 @@
       "trigger"
     ],
     "parameters": [
-    ]
+    ],
+    "trigger": {
+      "parameters": [
+        {
+          "id": "keyword",
+          "displayText": "Keyword",
+          "type": "string"
+        },
+        {
+          "id": "prompt",
+          "displayText": "Prompt",
+          "type": "textfield"
+        }
+      ]
+    }
   },
   {
     "id": "agent-chat",
@@ -27,6 +41,25 @@
         "displayText": "Name",
         "type": "string"
       }
-    ]
+    ],
+    "trigger": {
+      "parameters": [
+        {
+          "id": "keyword",
+          "displayText": "Keyword",
+          "type": "string"
+        },
+        {
+          "id": "prompt",
+          "displayText": "Prompt",
+          "type": "textfield"
+        },
+        {
+          "id": "include-chat-history",
+          "displayText": "Include chat history",
+          "type": "boolean"
+        }
+      ]
+    }
   }
 ]
