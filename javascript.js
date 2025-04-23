@@ -18,6 +18,12 @@ let panY                = 0;
 let isPanning           = false;
 let panStart            = {x:0,y:0};
 
+const nodeResizeObserver = new ResizeObserver(() => {
+  // update canvas metrics, then re-layout every path
+  canvasRect = canvas.getBoundingClientRect();
+  refreshAllPaths();
+});
+
 // LOAD CONNECTION TYPES
 fetch('nodes/connections.json')
   .then(r => r.json())
@@ -134,43 +140,10 @@ function createNode(tab, item, x, y) {
     const lbl = document.createElement('label');
     lbl.className = 'param-label';
     lbl.innerText = param.displayText + ':';
-    // optional for accessibility if you want:
-    // const fieldId = `node-${nodeCounter}-param-${idx}`;
-    // lbl.htmlFor = fieldId;
 
-    // Field
-    let field;
-    switch (param.type) {
-      case 'string':
-        field = document.createElement('input');
-        field.type = 'text';
-        field.value = (param.default != null) ? param.default : '';
-        break;
-
-      case 'textfield':
-        field = document.createElement('textarea');
-        field.value = (param.default != null) ? param.default : '';
-        break;
-
-      case 'int':
-        field = document.createElement('input');
-        field.type = 'number';
-        field.step = '1';
-        // you can optionally honor min/max if your JSON provides them:
-        if (param.min != null) field.min = param.min;
-        if (param.max != null) field.max = param.max;
-        field.value = (param.default != null) ? param.default : '';
-        break;
-
-      default:
-        // fallback to text
-        field = document.createElement('input');
-        field.type = 'text';
-        field.value = (param.default != null) ? param.default : '';
-    }
-
+    // Param field
+    const field = createFieldForParam(param);
     field.className = 'param-field';
-    // field.id = fieldId;   // if you set htmlFor above
 
     // Assemble
     row.appendChild(lbl);
@@ -185,6 +158,35 @@ function createNode(tab, item, x, y) {
   (item.outputs || []).forEach(type => {
     mkConn(colOut, 'output', type, tab);
   });
+
+  // ─── TRIGGER SECTION ───────────────────────────────────────────
+  if (item.trigger) {
+    // container for adder + all trigger rows
+    const trgSec = document.createElement('div');
+    trgSec.className = 'trigger-section';
+    nd.appendChild(trgSec);
+
+    // a separator line
+    const sep = document.createElement('div');
+    sep.className = 'separator';
+    trgSec.appendChild(sep);
+
+    // the “Add new trigger” button
+    const adder = document.createElement('div');
+    adder.className = 'trigger-adder';
+    adder.innerHTML = `<span class="trigger-adder-text">Add new trigger +</span>`;
+    trgSec.appendChild(adder);
+
+    // container for the actual trigger instances
+    const trgList = document.createElement('div');
+    trgList.className = 'trigger-list';
+    trgSec.appendChild(trgList);
+
+    // when clicked, instantiate one more trigger row
+    adder.addEventListener('click', () => {
+      addTriggerRow(trgList, item.trigger, tab);
+    });
+  }
 
   // ─── FOOTER: delete‑node button ───────────────────────────────
   const footer = document.createElement('div');
@@ -214,8 +216,138 @@ function createNode(tab, item, x, y) {
   // finally, mouse‑drag handler & attach
   nd.addEventListener('mousedown', nodeMouseDown);
   canvas.appendChild(nd);
+  // watch for any size change (e.g. textarea resize) and refresh wires
+  nodeResizeObserver.observe(nd);  
 }
 
+/**
+ * Given a parameter definition, return the appropriate HTML input element,
+ * with default/checked value applied.
+ */
+function createFieldForParam(param) {
+  let field;
+  switch (param.type) {
+    case 'string':
+      field = document.createElement('input');
+      field.type = 'text';
+      field.value = param.default != null ? param.default : '';
+      break;
+
+    case 'textfield':
+      field = document.createElement('textarea');
+      field.value = param.default != null ? param.default : '';
+      break;
+
+    case 'int':
+      field = document.createElement('input');
+      field.type = 'number';
+      field.step = '1';
+      if (param.min != null) field.min = param.min;
+      if (param.max != null) field.max = param.max;
+      field.value = param.default != null ? param.default : '';
+      break;
+
+    case 'boolean':
+      field = document.createElement('input');
+      field.type = 'checkbox';
+      field.checked = Boolean(param.default);
+      break;
+
+    case 'dropdown':
+      field = document.createElement('select');
+      // build <option> for each value
+      (param.options || []).forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt;
+        o.innerText = opt;
+        if (param.default === opt) {
+          o.selected = true;
+        }
+        field.appendChild(o);
+      });
+      break;
+
+    default:
+      field = document.createElement('input');
+      field.type = 'text';
+      field.value = param.default != null ? param.default : '';
+  }
+  return field;
+}
+
+/**
+ * container    – the <div class="trigger-list">
+ * triggerDef   – the `item.trigger` object from JSON
+ * category     – the node’s category so mkConn can color the output
+ */
+function addTriggerRow(container, triggerDef, category) {
+  // separator above each row
+  const sep = document.createElement('div');
+  sep.className = 'separator';
+  container.appendChild(sep);
+
+  // the row
+  const row = document.createElement('div');
+  row.className = 'trigger-row';
+
+  // left col: delete button
+  const inC = document.createElement('div');
+  inC.className = 'col-inputs';
+  const delBtn = document.createElement('img');
+  delBtn.className = 'trigger-delete-btn';
+  delBtn.src       = 'images/delete.png';
+  delBtn.alt       = 'Delete trigger';
+  inC.appendChild(delBtn);
+  row.appendChild(inC);
+
+  // middle col: trigger parameters
+  const pC = document.createElement('div');
+  pC.className = 'col-params';
+  (triggerDef.parameters || []).forEach(param => {
+    const r = document.createElement('div');
+    r.className = 'param-row';
+    const lbl = document.createElement('label');
+    lbl.className = 'param-label';
+    lbl.innerText = param.displayText + ':';
+    const f = createFieldForParam(param);
+    f.className = 'param-field';
+    r.appendChild(lbl);
+    r.appendChild(f);
+    pC.appendChild(r);
+  });
+  row.appendChild(pC);
+
+  // right col: trigger output connector
+  const outC = document.createElement('div');
+  outC.className = 'col-outputs';
+  const outConn = mkConn(outC, 'output', 'trigger', category);
+  row.appendChild(outC);
+
+  // deletion logic:
+  delBtn.addEventListener('click', () => {
+    // 1) remove any connections to/from this trigger output
+    for (let i = connections.length - 1; i >= 0; i--) {
+      const c = connections[i];
+      if (c.from === outConn || c.to === outConn) {
+        // if c.to was an input ball, clear its 'connected'
+        if (c.to && c.to.dataset.dir === 'input') {
+          c.to.classList.remove('connected');
+        }
+        // remove the SVG path
+        c.path.remove();
+        connections.splice(i,1);
+      }
+    }
+    // 2) remove this separator and row
+    sep.remove();
+    row.remove();
+
+    // 3) reflow all remaining wires
+    refreshAllPaths();
+  });
+
+  container.appendChild(row);
+}
 function mkConn(container, dir, type) {
   const wrapper = document.createElement('div');
   wrapper.className   = `connector ${dir}`;
@@ -237,6 +369,7 @@ function mkConn(container, dir, type) {
   ball   .addEventListener('mousedown', startConnection);
 
   container.appendChild(wrapper);
+  return wrapper;
 }
 
 // ─── NODE DRAG ────────────────────────────────────────────────────

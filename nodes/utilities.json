@@ -6,16 +6,17 @@
     "inputs": [
     ],
     "outputs": [
-      "trigger"
     ],
     "parameters": [
     ],
     "trigger": {
       "parameters": [
         {
-          "id": "keyword",
-          "displayText": "Keyword",
-          "type": "string"
+          "id": "interval",
+          "displayText": "Interval (seconds)",
+          "type": "int",
+          "default": 30,
+          "min": 10
         },
         {
           "id": "prompt",
@@ -30,10 +31,10 @@
     "displayText": "Agent chat",
     "icon": "chat.png",
     "inputs": [
-      "data"
+      "tool"
     ],
     "outputs": [
-      "trigger"
+      "data"
     ],
     "parameters": [
       {

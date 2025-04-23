@@ -4,10 +4,10 @@
     "displayText": "DocuStore",
     "icon": "data-source.png",
     "inputs": [
+      "tool"
     ],
     "outputs": [
-      "data",
-      "trigger"
+      "data"
     ],
     "parameters": [
       {
@@ -15,17 +15,38 @@
         "displayText": "Workspace",
         "type": "string"
       }
-    ]
+    ],
+    "trigger": {
+      "parameters": [
+        {
+          "id": "type",
+          "displayText": "Type",
+          "options": [
+            "Document created",
+            "Document updated",
+            "Document deleted",
+            "Document retracted",
+            "Document approved"
+          ],
+          "type": "dropdown"
+        },
+        {
+          "id": "prompt",
+          "displayText": "Prompt",
+          "type": "textfield"
+        }
+      ]
+    }
   },
   { 
     "id": "product-registry",
     "displayText": "Product Registry",
     "icon": "data-source.png",
     "inputs": [
+      "tool"
     ],
     "outputs": [
-      "data",
-      "trigger"
+      "data"
     ],
     "parameters": [
     ]
@@ -35,10 +56,10 @@
     "displayText": "GitLab",
     "icon": "data-source.png",
     "inputs": [
+      "tool"
     ],
     "outputs": [
-      "data",
-      "trigger"
+      "data"
     ],
     "parameters": [
       {
@@ -53,6 +74,7 @@
     "displayText": "JIRA",
     "icon": "data-source.png",
     "inputs": [
+      "tool"
     ],
     "outputs": [
       "data"
@@ -63,6 +85,26 @@
         "displayText": "Project",
         "type": "string"
       }
-    ]
+    ],
+    "trigger": {
+      "parameters": [
+        {
+          "id": "type",
+          "displayText": "Type",
+          "options": [
+            "Ticket created",
+            "Ticket deleted",
+            "Ticket changed status",
+            "Ticket assigned"
+          ],
+          "type": "dropdown"
+        },
+        {
+          "id": "prompt",
+          "displayText": "Prompt",
+          "type": "textfield"
+        }
+      ]
+    }
   }
 ]

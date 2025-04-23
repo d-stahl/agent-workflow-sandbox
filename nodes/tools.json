@@ -1,7 +1,7 @@
 [
   { 
-    "id": "docustore",
-    "displayText": "DocuStore",
+    "id": "text-messenger",
+    "displayText": "Text messenger",
     "icon": "tool.png",
     "inputs": [
       "tool"
@@ -10,54 +10,8 @@
     ],
     "parameters": [
       {
-        "id": "workspace",
-        "displayText": "Workspace",
-        "type": "string"
-      }
-    ]
-  },
-  { 
-    "id": "product-registry",
-    "displayText": "Product Registry",
-    "icon": "tool.png",
-    "inputs": [
-      "tool"
-    ],
-    "outputs": [
-    ],
-    "parameters": [
-    ]
-  },
-  { 
-    "id": "gitlab",
-    "displayText": "GitLab",
-    "icon": "tool.png",
-    "inputs": [
-      "tool"
-    ],
-    "outputs": [
-    ],
-    "parameters": [
-      {
-        "id": "project",
-        "displayText": "Project",
-        "type": "string"
-      }
-    ]
-  },
-  { 
-    "id": "jira",
-    "displayText": "JIRA",
-    "icon": "tool.png",
-    "inputs": [
-      "tool"
-    ],
-    "outputs": [
-    ],
-    "parameters": [
-      {
-        "id": "project",
-        "displayText": "Project",
+        "id": "phoneNumber",
+        "displayText": "Phone number",
         "type": "string"
       }
     ]
